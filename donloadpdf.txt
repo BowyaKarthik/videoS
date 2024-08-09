@@ -1,18 +1,21 @@
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 
+import java.io.File;
 import java.io.FileOutputStream;
-import java.io.InputStream;
+import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Base64;
 
-public class DownloadBlobPDF {
+public class DownloadAndReadPDF {
     public static void main(String[] args) {
-        // Setup WebDriver (e.g., ChromeDriver)
+        // Set up WebDriver (e.g., ChromeDriver)
         System.setProperty("webdriver.chrome.driver", "path/to/chromedriver");
         WebDriver driver = new ChromeDriver();
 
@@ -46,10 +49,25 @@ public class DownloadBlobPDF {
 
                 // Decode and save the PDF
                 byte[] pdfData = Base64.getDecoder().decode(base64Data);
-                try (FileOutputStream fos = new FileOutputStream("downloaded.pdf")) {
+                String filePath = "downloaded.pdf";
+                try (FileOutputStream fos = new FileOutputStream(filePath)) {
                     fos.write(pdfData);
                     System.out.println("PDF downloaded successfully.");
                 }
+
+                // Step 4: Read the downloaded PDF using PDFBox
+                File file = new File(filePath);
+                PDDocument document = PDDocument.load(file);
+
+                // Use PDFTextStripper to extract text from the PDF
+                PDFTextStripper pdfStripper = new PDFTextStripper();
+                String text = pdfStripper.getText(document);
+
+                // Output the extracted text
+                System.out.println("Extracted Text:\n" + text);
+
+                // Close the document
+                document.close();
             }
 
         } catch (Exception e) {
