@@ -1,0 +1,62 @@
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.Base64;
+
+public class DownloadBlobPDF {
+    public static void main(String[] args) {
+        // Setup WebDriver (e.g., ChromeDriver)
+        System.setProperty("webdriver.chrome.driver", "path/to/chromedriver");
+        WebDriver driver = new ChromeDriver();
+
+        try {
+            // Step 1: Navigate to the page and trigger the blob URL generation
+            driver.get("http://example.com/page-with-pdf-blob");
+
+            // Interact with the element that triggers the blob URL generation
+            WebElement downloadButton = driver.findElement(By.id("downloadButtonId")); // Replace with your element's ID
+            downloadButton.click();
+
+            // Step 2: Extract the blob URL using JavaScript
+            JavascriptExecutor js = (JavascriptExecutor) driver;
+            String blobUrl = (String) js.executeScript("return document.querySelector('a').href;"); // Adjust the selector if needed
+
+            // Step 3: Download the blob content
+            if (blobUrl.startsWith("blob:")) {
+                // The blob URL needs to be handled differently; here's a way to process it
+                String base64Content = (String) js.executeScript(
+                        "return fetch(arguments[0])" +
+                        ".then(response => response.blob())" +
+                        ".then(blob => new Promise((resolve, reject) => {" +
+                        "    let reader = new FileReader();" +
+                        "    reader.onloadend = () => resolve(reader.result);" +
+                        "    reader.onerror = reject;" +
+                        "    reader.readAsDataURL(blob);" +
+                        "}));", blobUrl);
+
+                // Remove the prefix from the base64 string (e.g., "data:application/pdf;base64,")
+                String base64Data = base64Content.split(",")[1];
+
+                // Decode and save the PDF
+                byte[] pdfData = Base64.getDecoder().decode(base64Data);
+                try (FileOutputStream fos = new FileOutputStream("downloaded.pdf")) {
+                    fos.write(pdfData);
+                    System.out.println("PDF downloaded successfully.");
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            // Close the browser
+            driver.quit();
+        }
+    }
+}
