@@ -52,6 +52,18 @@ public class PdfVerification {
             System.out.println("Failed to fetch the PDF. HTTP response code: " + responseCode);
         }
 
+
+         <repository>
+        <id>local-repo</id>
+        <url>file://${user.home}/.m2/repository</url>
+        <releases>
+            <enabled>true</enabled>
+        </releases>
+        <snapshots>
+            <enabled>true</enabled>
+        </snapshots>
+    </repository>
+
         // Disconnect the connection
         connection.disconnect();
     }
