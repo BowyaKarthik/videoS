@@ -68,3 +68,61 @@ public class PdfVerification {
         connection.disconnect();
     }
 }
+
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Random;
+ 
+public class Main {
+    public static void main(String[] args) {
+        // Define MinAge and MaxAge
+        int MinAge = 20;
+        int MaxAge = 40;
+ 
+        // Get a random date between MinAge to MaxAge years in the past
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyMMdd");
+        Date currentDate = new Date();
+        Random random = new Random();
+        int randomYears = MinAge + random.nextInt(MaxAge - MinAge + 1);
+        currentDate.setYear(currentDate.getYear() - randomYears);
+        String randomDob = dateFormat.format(currentDate);
+ 
+        // Get a random number between '1000' and '9999'
+        int randomAgeSeed = 1000 + random.nextInt(9000);
+ 
+        // Form random_id_no_check_digit
+        String randomIdNoCheckDigit = randomDob + randomAgeSeed + "08";
+ 
+        // Get Check Digit
+        int sum = 0;
+        int sum_len = 0;
+        String idWithoutCheckDigit = randomIdNoCheckDigit.substring(0, randomIdNoCheckDigit.length() - 1);
+        for (int i = 0; i < idWithoutCheckDigit.length(); i++) {
+            char digit = idWithoutCheckDigit.charAt(i);
+            int num = Character.getNumericValue(digit);
+            sum += num;
+            sum_len += 1;
+        }
+        int checkDigit = (sum % 11);
+        String idCustomer = randomIdNoCheckDigit + checkDigit;
+ 
+        // Determine gender_customer
+        String genderCustomer = "female";
+        if (randomAgeSeed > 4999) {
+            genderCustomer = "male";
+        }
+ 
+        // Convert date time to custom format
+        SimpleDateFormat dobFormat = new SimpleDateFormat("dd MMM yyyy");
+        Date dobDate = new Date();
+        dobDate.setYear(Integer.parseInt(randomDob.substring(0, 2)) + 1900);
+        dobDate.setMonth(Integer.parseInt(randomDob.substring(2, 4)) - 1);
+        dobDate.setDate(Integer.parseInt(randomDob.substring(4)));
+        String dobCustomer = dobFormat.format(dobDate);
+ 
+        // Print results
+        System.out.println("ID : " + idCustomer);
+        System.out.println("Gender : " + genderCustomer);
+    }
+}
