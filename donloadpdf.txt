@@ -125,3 +125,14 @@ public class NetworkInterceptor {
     }
 }
 
+  String script = "let originalFetch = window.fetch;" +
+                "window.fetch = function() {" +
+                "    return originalFetch.apply(this, arguments).then(response => {" +
+                "        response.clone().json().then(data => {" +
+                "            console.log('Response Data:', data);" +
+                "        });" +
+                "        return response;" +
+                "    });" +
+                "};";
+
+        ((JavascriptExecutor) driver).executeScript(script);
