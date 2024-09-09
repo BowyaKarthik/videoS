@@ -150,3 +150,75 @@ for (String key : keys) {
     return (String) js.executeScript(String.format(
         "return window.localStorage.getItem('%s');", key));
   }
+import net.lightbody.bmp.BrowserMobProxy;
+import net.lightbody.bmp.BrowserMobProxyServer;
+import net.lightbody.bmp.client.ClientUtil;
+import net.lightbody.bmp.core.har.Har;
+import net.lightbody.bmp.core.har.HarEntry;
+import org.openqa.selenium.Proxy;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.edge.EdgeDriver;
+import org.openqa.selenium.edge.EdgeOptions;
+import io.github.bonigarcia.wdm.WebDriverManager;
+
+public class CaptureTokenMidScript {
+
+    public static void main(String[] args) {
+        // Start BrowserMob Proxy
+        BrowserMobProxy proxy = new BrowserMobProxyServer();
+        proxy.start(0);  // Starts on any available port
+
+        // Configure Selenium to use BrowserMob Proxy
+        Proxy seleniumProxy = ClientUtil.createSeleniumProxy(proxy);
+        WebDriverManager.edgedriver().setup();
+        EdgeOptions options = new EdgeOptions();
+        options.setProxy(seleniumProxy);
+
+        WebDriver driver = new EdgeDriver(options);
+
+        // Enable HAR (HTTP Archive) to capture network traffic
+        proxy.newHar("token_capture");
+
+        // Navigate to your application (where the token is expected to be retrieved in between)
+        driver.get("https://example.com");  // Replace with your app's URL
+
+        // Perform actions leading to the API call (such as login or interaction that triggers the token retrieval)
+        // E.g., driver.findElement(By.id("login")).click();
+
+        // After triggering the token-generating API call, retrieve the HAR
+        Har har = proxy.getHar();
+
+        // Iterate over the HAR entries to find the API call that contains the token
+        for (HarEntry entry : har.getLog().getEntries()) {
+            String requestUrl = entry.getRequest().getUrl();
+            if (requestUrl.contains("your_api_endpoint")) {  // Replace with the actual API endpoint URL
+                System.out.println("API URL: " + requestUrl);
+
+                // Check for Authorization header in the response or request
+                entry.getResponse().getHeaders().forEach(header -> {
+                    if (header.getName().equalsIgnoreCase("Authorization")) {
+                        String authorizationHeader = header.getValue();
+                        if (authorizationHeader.startsWith("Bearer")) {
+                            String bearerToken = authorizationHeader.substring("Bearer ".length());
+                            System.out.println("Bearer Token: " + bearerToken);
+                        }
+                    }
+                });
+
+                // Alternatively, if the token is in the response body (e.g., JSON)
+                String responseBody = entry.getResponse().getContent().getText();
+                if (responseBody.contains("access_token")) {
+                    // Extract token from JSON response (you can use a JSON parser like Jackson or Gson here)
+                    String bearerToken = responseBody.split("\"access_token\":\"")[1].split("\"")[0];
+                    System.out.println("Bearer Token from body: " + bearerToken);
+                }
+            }
+        }
+
+        // Continue with your test script, now having access to the token if needed
+
+        // Stop the proxy and close the browser
+        proxy.stop();
+        driver.quit();
+    }
+}
