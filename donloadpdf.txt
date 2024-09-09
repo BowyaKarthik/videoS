@@ -78,3 +78,50 @@ public class DownloadAndReadPDF {
         }
     }
 }
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.devtools.DevTools;
+import org.openqa.selenium.devtools.v112.network.Network;
+
+import java.util.Optional;
+
+public class NetworkInterceptor {
+    public static void main(String[] args) {
+        // Set ChromeDriver path
+        System.setProperty("webdriver.chrome.driver", "path_to_chromedriver");
+
+        // Set Chrome Options
+        ChromeOptions options = new ChromeOptions();
+        ChromeDriver driver = new ChromeDriver(options);
+
+        // Create DevTools session
+        DevTools devTools = driver.getDevTools();
+        devTools.createSession();
+
+        // Enable Network Monitoring
+        devTools.send(Network.enable(Optional.empty(), Optional.empty(), Optional.empty()));
+
+        // Add a listener for network response
+        devTools.addListener(Network.responseReceived(), response -> {
+            String url = response.getResponse().getUrl();
+            if (url.contains("your_api_endpoint")) { // Replace with the actual API endpoint
+                System.out.println("API URL: " + url);
+                System.out.println("Status: " + response.getResponse().getStatus());
+                System.out.println("Response Headers: " + response.getResponse().getHeaders());
+
+                // Extract Bearer Token from headers if available
+                if (response.getResponse().getHeaders().containsKey("Authorization")) {
+                    String bearerToken = response.getResponse().getHeaders().get("Authorization").toString();
+                    System.out.println("Bearer Token: " + bearerToken);
+                }
+            }
+        });
+
+        // Navigate to the page
+        driver.get("https://example.com");
+
+        // Close the browser after work
+        driver.quit();
+    }
+}
+
