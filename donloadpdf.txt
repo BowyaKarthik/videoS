@@ -146,3 +146,7 @@ List<String> keys = (List<String>) ((JavascriptExecutor) driver).executeScript(
 for (String key : keys) {
     System.out.println("localStorage Key: " + key);
 }
+  public String getItemFromLocalStorage(String key) {
+    return (String) js.executeScript(String.format(
+        "return window.localStorage.getItem('%s');", key));
+  }
