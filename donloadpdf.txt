@@ -136,3 +136,4 @@ public class NetworkInterceptor {
                 "};";
 
         ((JavascriptExecutor) driver).executeScript(script);
+String tokenScript = "return localStorage.getItem('authToken');";
