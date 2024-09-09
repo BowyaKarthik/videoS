@@ -137,3 +137,12 @@ public class NetworkInterceptor {
 
         ((JavascriptExecutor) driver).executeScript(script);
 String tokenScript = "return localStorage.getItem('authToken');";
+
+// Retrieve all keys stored in localStorage
+List<String> keys = (List<String>) ((JavascriptExecutor) driver).executeScript(
+    "return Object.keys(localStorage);"
+);
+
+for (String key : keys) {
+    System.out.println("localStorage Key: " + key);
+}
