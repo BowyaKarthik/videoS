@@ -248,3 +248,8 @@ public static boolean isFileDownloaded(String downloadPath, String fileName) {
 
         options.setExperimentalOption("prefs", prefs);
         options.addArguments("--disable-extensions");  /
+
+
+
+js.executeScript("document.body.style.transform = 'scale(0.8)'; document.body.style.transformOrigin = '0 0';");
+ 
