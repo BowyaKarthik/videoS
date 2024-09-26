@@ -122,6 +122,23 @@ public class Main {
         String dobCustomer = dobFormat.format(dobDate);
  
         // Print results
+
+
+
+            public static <T extends Enum<T>> T fromString(Class<T> enumClass, String value) {
+        T[] enumConstants = enumClass.getEnumConstants();
+        for (T enumConstant : enumConstants) {
+            // Assuming every enum has a `getStatusValue()` or similar method
+            try {
+                if (enumConstant.toString().equalsIgnoreCase(value)) {
+                    return enumConstant;
+                }
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Enum type doesn't support string conversion.");
+            }
+        }
+        throw new IllegalArgumentException("Unknown value: " + value);
+    }
         System.out.println("ID : " + idCustomer);
         System.out.println("Gender : " + genderCustomer);
     }
