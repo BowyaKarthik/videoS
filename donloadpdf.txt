@@ -251,5 +251,115 @@ public static boolean isFileDownloaded(String downloadPath, String fileName) {
 
 
 
+public class TestExecutor {
+
+    private String testResultId;  // To store the TestResult ID
+
+    // Other class-level variables...
+	@Before
+public void setup() {
+    // Create the test case result and get the TestResult ID
+    this.testResultId = createTestResult();
+}
+
+public String createTestResult() {
+    // Use the Azure DevOps API to create the test result
+    HttpClient client = HttpClient.newHttpClient();
+
+    String requestBody = """
+    [
+      {
+        "testCaseTitle": "Login Test Case",
+        "automatedTestName": "com.example.selenium.LoginTest",
+        "outcome": "InProgress",  // Placeholder outcome, as test hasn't finished
+        "state": "InProgress"
+      }
+    ]
+    """;
+
+    HttpRequest request = HttpRequest.newBuilder()
+        .uri(URI.create("https://dev.azure.com/{organization}/{project}/_apis/test/runs/{runId}/results?api-version=7.0"))
+        .header("Authorization", "Basic " + auth)
+        .header("Content-Type", "application/json")
+        .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+        .build();
+
+    HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+    String responseBody = response.body();
+
+    // Parse the response to get the TestResult ID
+    JSONObject json = new JSONObject(responseBody);
+    return json.getJSONArray("value").getJSONObject(0).getString("id");
+}
+@AfterStep
+public void updateTestStepStatus(Scenario scenario) {
+    int stepIndex = getCurrentStepIndex(scenario);  // Method to track current step number
+    String outcome = scenario.isFailed() ? "Failed" : "Passed";
+    String errorMessage = scenario.isFailed() ? scenario.getName() + " failed." : null;
+
+    updateTestStep(stepIndex, outcome, errorMessage);
+}
+
+public void updateTestStep(int stepId, String outcome, String errorMessage) throws Exception {
+    HttpClient client = HttpClient.newHttpClient();
+
+    String requestBody = String.format("""
+    {
+      "actionResults": [
+        {
+          "iterationId": 1,
+          "stepId": %d,
+          "outcome": "%s",
+          "errorMessage": "%s"
+        }
+      ]
+    }
+    """, stepId, outcome, errorMessage == null ? "" : errorMessage);
+
+    HttpRequest request = HttpRequest.newBuilder()
+        .uri(new URI("https://dev.azure.com/{organization}/{project}/_apis/test/runs/{runId}/results/" + testResultId + "?api-version=7.0"))
+        .header("Authorization", "Basic " + auth)
+        .header("Content-Type", "application/json")
+        .method("PATCH", HttpRequest.BodyPublishers.ofString(requestBody))
+        .build();
+
+    HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+    System.out.println("Step Result Updated: " + response.body());
+}
+@After
+public void tearDown(Scenario scenario) {
+    String finalOutcome = scenario.isFailed() ? "Failed" : "Passed";
+    updateTestResult(finalOutcome);
+}
+
+public void updateTestResult(String outcome) throws Exception {
+    HttpClient client = HttpClient.newHttpClient();
+
+    String requestBody = String.format("""
+    [
+      {
+        "id": %s,
+        "outcome": "%s",
+        "state": "Completed"
+      }
+    ]
+    """, testResultId, outcome);
+
+    HttpRequest request = HttpRequest.newBuilder()
+        .uri(new URI("https://dev.azure.com/{organization}/{project}/_apis/test/runs/{runId}/results/" + testResultId + "?api-version=7.0"))
+        .header("Authorization", "Basic " + auth)
+        .header("Content-Type", "application/json")
+        .method("PATCH", HttpRequest.BodyPublishers.ofString(requestBody))
+        .build();
+
+    HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+    System.out.println("Final Test Result Updated: " + response.body());
+}
+
+}
+
+
+
+
 js.executeScript("document.body.style.transform = 'scale(0.8)'; document.body.style.transformOrigin = '0 0';");
  
