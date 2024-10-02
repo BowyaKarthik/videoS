@@ -362,4 +362,6 @@ public void updateTestResult(String outcome) throws Exception {
 
 
 js.executeScript("document.body.style.transform = 'scale(0.8)'; document.body.style.transformOrigin = '0 0';");
- 
+
+
+{ \"iterationDetails\": [\r\n        {\r\n            \"id\": 1,\r\n            \"outcome\": \"Passed\",\r\n            \"errorMessage\": \"\",\r\n            \"startedDate\": \"2022-02-16T21:14:14.337Z\",\r\n            \"completedDate\": \"2022-02-16T21:14:17.057Z\",\r\n            \"durationInMs\": 27180000.0,\r\n            \"actionResults\": [\r\n                {\r\n                    \"actionPath\": \"00000002\",\r\n                    \"iterationId\": 1,\r\n                    \"stepIdentifier\": \"2\",\r\n                    \"outcome\": \"Unspecified\",\r\n                    \"startedDate\": \"2022-02-16T21:14:14Z\",\r\n                    \"completedDate\": \"2022-02-16T21:14:14Z\"\r\n                }\r\n            ] \r\n        }\r\n    ]\r\n}
